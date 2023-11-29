@@ -5,95 +5,64 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class LinuxPlatform {
-
-    /** yes this literally just uses java io to check what's in the os-release file. */
-    private static final String command = "cat /etc/os-release";
-
-    /** Checks if the user is running Linux */
+    
     public static boolean isLinux() {
         return System.getProperty("os.name").equals("Linux");
     }
 
-    /** pretty name (basically just the name but more pretty ig). */
-    public static String getPrettyName() {
-        return Console.getTagFromCommand("PRETTY_NAME=");
-    }
-
-    /** Distribution name. */
-    public static String getName() {
-        return Console.getTagFromCommand("NAME=");
-    }
-
-    /** Logo name I think. */
-    public static String getLogo() {
-        return Console.getTagFromCommand("LOGO=");
-    }
-
-    /** Distribution Build/Version. */
-    public static String getBuildId() {
-        return Console.getTagFromCommand("BUILD_ID=");
-    }
-
-    /** Current Kernel. */
     public static String getKernel() {
         return System.getProperty("os.version");
     }
 
-    /**  Identification Like (like what it's based on, e.g. Arch or Debian/Ubuntu). */
+    public static String getPrettyName() {
+        return getReleaseInfoFromTag("pretty_name");
+    }
+
+    public static String getName() {
+        return getReleaseInfoFromTag("name");
+    }
+
+    public static String getLogo() {
+        return getReleaseInfoFromTag("logo");
+    }
+
+    public static String getBuildId() {
+        return getReleaseInfoFromTag("build_id");
+    }
+
     public static String getIdLike() {
-        return Console.getTagFromCommand("ID_LIKE=");
+        return getReleaseInfoFromTag("id_like");
     }
 
-    /** Identification. */
     public static String getId() {
-        return Console.getTagFromCommand("ID=");
+        return getReleaseInfoFromTag("id");
     }
 
-    /** I did this for absolutely no reason :). */
-    public static class Console {
+    private static String getReleaseInfoFromTag(String tag) {
+        String upperTag = tag.toUpperCase() + "=";
+        String command = "awk '/^" + upperTag + "/' /etc/os-release";
 
-        /** getLineFromCommand but removes the specified tag (eg. ID=6.90.420 to 6.90.420) */
-        private static String getTagFromCommand(String startsWith) {
-            return getLineFromCommand(LinuxPlatform.command, startsWith).replace(startsWith, "");
-        }
+        return ConsoleUtil.getCommandOutput(command).replace(upperTag, "");
+    }
 
-        /** Gets a line from what it starts with, im too lazy to make it with arrays */
-        private static String getLineFromCommand(String exec, String startsWith) {
-            String result = null;
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(exec).getInputStream()));
+    public static String getCommandOutput(String exec) {
+        String result = "";
 
-                String input;
-                while ((input = reader.readLine()) != null)
-                    if (input.startsWith(startsWith))
-                        result = input;
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(exec).getInputStream()));
 
-                reader.close();
-
-            } catch (IOException e) {
-                e.printStackTrace();
+            String input;
+            while ((input = reader.readLine()) != null) {
+                result += "\n" + input;
             }
-            assert result != null;
-            return result.replace(startsWith, "");
+
+            reader.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.print("Failed to execute command '" + exec + "': " + e.getCause());
         }
-
-        /** Returns to the output of the specified command */
-        public static String getCommand(String exec) {
-            String result = null;
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(exec).getInputStream()));
-
-                String input;
-                while ((input = reader.readLine()) != null)
-                    result += "\n" + input;
-
-                reader.close();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return result;
-        }
+        return result;
     }
 
 }
