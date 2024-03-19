@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class LinuxPlatform {
+public class LinuxInfo {
     
     public static boolean isLinux() {
         return System.getProperty("os.name").equals("Linux");
