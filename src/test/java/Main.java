@@ -1,4 +1,4 @@
-import static me.aussied.LinuxPlatform.*;
+import static me.aussied.LinuxInfo.*;
 
 public class Main {
 
